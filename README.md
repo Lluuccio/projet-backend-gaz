@@ -1,183 +1,159 @@
-# 🔧 Backend - Application de Gestion de Bouteilles de Gaz
+# Backend - Application de Gestion de Bouteilles de Gaz
 
 Ce backend permet de gérer la logistique des livraisons de bouteilles de gaz : création des livraisons, suivi du stock, calcul des revenus et du chiffre d'affaires des chauffeurs. Il est construit avec Node.js, Express.js et MongoDB.
 
----
+## Technologies utilisées
 
-## 🧱 Technologies utilisées
+* Node.js v22
+* Express.js
+* MongoDB avec Mongoose
+* Dotenv pour la configuration
 
-- **Node.js v22**
-- **Express.js**
-- **MongoDB** avec **Mongoose**
-- **Dotenv** pour la configuration
+## Structure du projet
 
----
-
-## 📁 Structure du projet
-
-```
 gestion-gaz-backend/
-│
-├── models/              # Schémas de données
-│   ├── Chauffeur.js
-│   ├── Livraison.js
-│   └── Stock.js
-│
-├── controllers/         # Logique métier
-│   ├── chauffeur.controller.js
-│   ├── livraison.controller.js
-│   └── stock.controller.js
-│
-├── routes/              # Routes API REST
-│   ├── chauffeur.routes.js
-│   ├── livraison.routes.js
-│   └── stock.routes.js
-│
-├── utils/
-│   └── calculCA.js      # Calcul du chiffre d'affaires
-│
-├── app.js               # Initialisation Express
-├── server.js            # Point d’entrée du serveur
-├── .env                 # Variables d’environnement
-└── package.json
-```
 
----
+* models/ : Chauffeur.js, Livraison.js, Stock.js
+* controllers/ : chauffeur.controller.js, livraison.controller.js, stock.controller.js
+* routes/ : chauffeur.routes.js, livraison.routes.js, stock.routes.js
+* utils/ : calculCA.js
+* app.js, server.js, .env, package.json
 
-## ⚙️ Installation et exécution
+## Installation et exécution
 
-### 1. Installer les dépendances
+1. Installer les dépendances :
 
 ```bash
 npm install
 ```
 
-### 2. Configurer les variables d’environnement
-
-Créer un fichier `.env` à la racine avec :
+2. Créer un fichier `.env` :
 
 ```
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/gestion_gaz
 ```
 
-### 3. Lancer le serveur
+3. Lancer le serveur :
 
 ```bash
 nodemon app
 ```
 
----
+## Fonctionnement des livraisons
 
-## 🚚 Fonctionnement des livraisons
+Une livraison contient :
 
-Une **livraison** contient :
-- Type "sortie" ou "retour"
-- L’ID du **chauffeur**
-- L'ID du **camion**
-- Une **date**
-- Une **liste de bouteilles livrées**, avec pour chacune :
-  - `statutSortie`: `"le nombre de bouteilles pleines"` ou `"le nombre de bouteilles vides"`
-  - `statutRetour`: `"le nombre de bouteilles pleines"`, `"le nombre de bouteilles vides"`
+* type : sortie ou retour
+* id du chauffeur
+* id du camion
+* date
+* liste de bouteilles livrées avec :
 
-- Pour la livraison de tyep "retour" il faut renseigner l'ID de la livraison sortie 
+  * statutSortie : nombre de pleines et de vides
+  * statutRetour : nombre de pleines et de vides
 
+Pour une livraison de type retour, il faut aussi fournir l'id de la livraison sortie correspondante.
 
-## 💸 Gestion des prix
+## Gestion des prix
 
-| Type de vente           | Condition                                   | Prix unitaire |
-|------------------------|---------------------------------------------|---------------|
-| **Avec échange**       | Pleine livrée + vide retournée              | 4 950 FCFA    |
-| **Sans échange**       | Pleine livrée, aucun retour                 | 25 000 FCFA   |
+* Avec échange : bouteille pleine livrée + vide retournée → 4950 FCFA
+* Sans échange : bouteille pleine livrée sans retour → 25000 FCFA
 
-🔸 Les bouteilles **sorties pleines** sont les seules qui comptent dans le chiffre d’affaires.  
-🔸 Les bouteilles sorties **vides** ne rapportent rien.
+Seules les bouteilles pleines sorties sont comptées dans le chiffre d'affaires. Les bouteilles vides ne rapportent rien.
 
----
-
-## 📡 Endpoints API
-
-### Chauffeurs
-
-- `POST /chauffeurs` – Ajouter un chauffeur
-- `GET /chauffeurs` – Lister tous les chauffeurs
-- `GET /chauffeurs/:id` – Obtenir les infos d’un chauffeur
-- `GET /chauffeurs/:id/ca` – Chiffre d’affaires d’un chauffeur
-
-### Livraisons
-
-- `POST /livraisons` – Créer une livraison
-- `GET /livraisons` – Voir toutes les livraisons
-
-### Stock
-
-- `GET /stock` – Suivi des bouteilles :pleines, vides
-
----
-
-## 📊 Exemple de calcul du chiffre d'affaires
+## Exemple de calcul du chiffre d'affaires
 
 Si un chauffeur livre :
 
-| statutSortie | statutRetour | Type         | Prix        |
-|--------------|---------------|--------------|-------------|
-| pleine       | vide          | avec échange | 4 950 FCFA  |
-| pleine       | aucun         | sans échange | 25 000 FCFA |
-| vide         | vide          | —            | 0 FCFA      |
+* 1 pleine avec retour vide → 4950 FCFA
+* 1 pleine sans retour → 25000 FCFA
+* 1 vide → 0 FCFA
 
-### Résultat :
+Résultat : chiffre d'affaires = 29950 FCFA pour 2 bouteilles pleines
 
-- CA total : **29 950 FCFA**
-- 2 bouteilles pleines comptabilisées
+## Endpoints API – Documentation détaillée
 
----
+### Authentification
 
-## 🔒 Sécurité (prochaine étape)
+#### POST /login
 
-- Authentification par JWT
-- Rôles : Admin / Chauffeur
+Connexion d'un utilisateur (admin ou chauffeur)
 
----
-Changements importants :
+* Méthode : POST
+* Corps : { "username": "admin", "password": "motdepasse" }
+* Réponse : { "token": "jwt\_token" }
 
-Le calcul du chiffre d'affaires a été déplacé dans utils/calculCA.js pour clarifier la logique.
+### Utilisateurs (admin uniquement)
 
-Une vérification a été ajoutée pour que les livraisons retour soient bien liées à une livraison sortie existante.
+* GET /users : lister les utilisateurs
+* POST /users : créer un utilisateur { "username": "user", "password": "pass", "role": "admin" }
+* PUT /users/\:id : modifier un utilisateur
+* DELETE /users/\:id : supprimer un utilisateur
 
-Le modèle de stock a été simplifié pour regrouper les informations dans un seul document.
+### Bouteilles
 
-Bugs rencontrés :
+* GET /bouteilles : liste des bouteilles (authentifié)
+* POST /bouteilles : ajouter une bouteille (admin)
+* PUT /bouteilles/\:id : modifier une bouteille (admin)
+* DELETE /bouteilles/\:id : supprimer une bouteille (admin)
 
-Le chiffre d’affaires prenait en compte les bouteilles vides. Des conditions ont été ajoutées pour les exclure.
+### Camions
 
-Les livraisons retour étaient acceptées même sans référence à une livraison sortie. Une validation a été intégrée.
+* GET /camions : liste des camions (authentifié)
+* POST /camions : ajouter un camion (admin)
+* PUT /camions/\:id : modifier un camion (admin)
+* DELETE /camions/\:id : supprimer un camion (admin)
 
-L’affichage du stock était incorrect. Une correction a été faite dans le contrôleur.
+### Chauffeurs
 
-Choix techniques :
+* GET /chauffeurs : liste des chauffeurs (authentifié)
+* POST /chauffeurs : ajouter un chauffeur (admin)
+* PUT /chauffeurs/\:id : modifier un chauffeur (admin)
+* DELETE /chauffeurs/\:id : supprimer un chauffeur (admin)
+* GET /chauffeurs/\:id/ca : chiffre d'affaires d'un chauffeur (authentifié)
 
-Utilisation de Mongoose pour les schémas de données stricts.
+### Livraisons
 
-Découpage en modèle MVC pour faciliter la maintenance.
+* GET /livraisons : liste des livraisons (authentifié)
+* POST /livraisons : créer une livraison (admin)
+* PUT /livraisons/\:id : modifier une livraison (admin)
+* DELETE /livraisons/\:id : supprimer une livraison (admin)
+* GET /livraisons/chauffeur : livraisons liées au chauffeur connecté (chauffeur)
 
-Centralisation des règles métier dans les contrôleurs.
+### Stock
 
-## 🚀 Améliorations futures
+* GET /stock : état du stock (authentifié)
+* Réponse : { "pleines": 48, "vides": 12 }
 
-- Tableau de bord statistique
-- Génération de rapports PDF
-- Gestion des retours anormaux
-- Application mobile Flutter connectée
+## Modifications et bugs corrigés
 
----
+* Calcul du chiffre d'affaires déplacé dans utils/calculCA.js
+* Vérification ajoutée pour que les retours soient bien liés à une sortie
+* Modèle de stock simplifié
+* Exclusion des bouteilles vides du CA
+* Contrôle de validité pour les livraisons retour
+* Correction de l'affichage du stock
 
-## 👨‍💻 Auteur
+## Choix techniques
+
+* Utilisation de Mongoose pour la structure stricte des données
+* Organisation en modèle MVC pour la lisibilité
+* Logique métier centralisée dans les contrôleurs
+
+## Améliorations futures
+
+* Authentification JWT avec rôles
+* Tableau de bord statistique
+* Génération de rapports PDF
+* Gestion des retours anormaux
+* Application mobile Flutter connectée
+
+## Auteur
 
 Développé par Groupe Bibang GI2A
 
-
----
-
-## 📄 Licence
+## Licence
 
 MIT – Projet libre d’utilisation et de modification.
+
